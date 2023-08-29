@@ -75,6 +75,8 @@ export async function test(
   const tree = unified().use(remarkParse).parse(markdown);
   const codeBlocks = languages.flatMap((language) =>
     selectAll(`code[lang="${language}"]`, tree)
+  ).sort((a, b) =>
+    (a.position?.start.line ?? 0) - (b.position?.start.line ?? 0)
   );
 
   const testSuiteName = `${kTestNamePrefix}${path}`;
