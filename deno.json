@@ -1,0 +1,10 @@
+{
+  "lock": false,
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check cli.ts",
+    "test": "deno test --doc --allow-read"
+  },
+  "imports": {
+    "https://deno.land/x/deno_power_doctest@$MODULE_VERSION/mod.ts": "./mod.ts"
+  }
+}
