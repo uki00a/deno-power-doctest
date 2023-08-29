@@ -13,12 +13,12 @@ console.log({ n: 1, s: "bar" }); // => { n: 1, s: "bar" }
 ```
 
 ```typescript
-import { run } from "https://deno.land/x/deno_power_doctest@$MODULE_VERSION/mod.ts";
+import { test } from "https://deno.land/x/deno_power_doctest@$MODULE_VERSION/mod.ts";
 
 Deno.test({
-  name: "run",
+  name: "test",
   fn: async (t) => {
-    await run(t, "README.md");
+    await test(t, "README.md");
   },
   permissions: {
     read: ["README.md"],
