@@ -1,7 +1,7 @@
 import { assertEquals, kStdAssertEqualsModURL } from "./deps.ts";
 import { createProject, transform } from "./_transform.ts";
 
-const kAssertEquals = "_power-doctest_assertEquals";
+const kAssertEquals = "_power_doctest_assertEquals";
 Deno.test("transform", async (t) => {
   const project = createProject();
   for (

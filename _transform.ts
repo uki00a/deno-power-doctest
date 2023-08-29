@@ -16,7 +16,7 @@ const kConsoleMethods = [
   // "assert",
 ];
 
-const kAssertEquals = "_power-doctest_assertEquals";
+const kAssertEquals = "_power_doctest_assertEquals";
 const kTestFileHeader =
   `import { assertEquals as ${kAssertEquals} } from "${kStdAssertEqualsModURL}";\n`;
 
