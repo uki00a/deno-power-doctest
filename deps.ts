@@ -22,10 +22,16 @@ export { parse as parseStackTrace } from "https://esm.sh/stack-trace@1.0.0-pre2?
  * {@link https://github.com/dsherret/ts-morph}
  */
 export { Project, ts } from "https://deno.land/x/ts_morph@19.0.0/mod.ts";
-export type { CallExpression } from "https://deno.land/x/ts_morph@19.0.0/mod.ts";
+export type {
+  CallExpression,
+  SourceFile,
+} from "https://deno.land/x/ts_morph@19.0.0/mod.ts";
 
+export const kStdAssertModURL =
+  "https://deno.land/std@0.200.0/assert/assert.ts";
 export const kStdAssertEqualsModURL =
   "https://deno.land/std@0.200.0/assert/assert_equals.ts";
+export { assert } from "https://deno.land/std@0.200.0/assert/assert.ts";
 export { assertEquals } from "https://deno.land/std@0.200.0/assert/assert_equals.ts";
 export { AssertionError } from "https://deno.land/std@0.200.0/assert/assertion_error.ts";
 
