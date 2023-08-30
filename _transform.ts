@@ -1,6 +1,11 @@
 import assert from "node:assert";
-import type { CallExpression } from "./deps.ts";
-import { kStdAssertEqualsModURL, Project, ts } from "./deps.ts";
+import type { CallExpression, SourceFile } from "./deps.ts";
+import {
+  kStdAssertEqualsModURL,
+  kStdAssertModURL,
+  Project,
+  ts,
+} from "./deps.ts";
 
 const kConsole = "console";
 const kConsoleMethods = [
@@ -9,27 +14,18 @@ const kConsoleMethods = [
   "error",
   "debug",
   "warn",
+  "assert",
   // TODO: Support `console.table`
   // "table",
+] as const;
+type ConsoleMethod = typeof kConsoleMethods[number];
 
-  // TODO: Support `console.assert`
-  // "assert",
-];
-
-const kAssertEquals = "_power_doctest_assertEquals";
+const kAssertPrefix = "_power_doctest_";
+const kAssert = `${kAssertPrefix}assert`;
+const kAssertEquals = `${kAssertPrefix}assertEquals`;
 const kTestFileHeader =
-  `import { assertEquals as ${kAssertEquals} } from "${kStdAssertEqualsModURL}";\n`;
-
-function isConsoleExpression(node: CallExpression): boolean {
-  const expr = node.getExpressionIfKind(ts.SyntaxKind.PropertyAccessExpression);
-  if (expr == null) return false;
-
-  const ident = expr.getExpressionIfKind(ts.SyntaxKind.Identifier);
-  if (ident == null) return false;
-  if (ident.getText() !== kConsole) return false;
-  if (!kConsoleMethods.includes(expr.getNameNode().getText())) return false;
-  return true;
-}
+  `import { assert as ${kAssert} } from "${kStdAssertModURL}";
+import { assertEquals as ${kAssertEquals} } from "${kStdAssertEqualsModURL}";\n`;
 
 export function createProject(): Project {
   return new Project({
@@ -52,50 +48,92 @@ export function transform(
 ): string {
   const sourceFile = project.createSourceFile(filename, code);
   try {
-    let shouldInjectTestFileHeader = false;
-    sourceFile.forEachDescendant((node, traversal) => {
-      if (node.getKind() !== ts.SyntaxKind.CallExpression) {
-        return;
-      }
-
-      assert(node.isKind(ts.SyntaxKind.CallExpression));
-      if (!isConsoleExpression(node)) return traversal.skip();
-
-      const args = node.getArguments();
-      if (args.length !== 1) return traversal.skip();
-
-      const trailingCommentRanges = node.getParent()
-        ?.getTrailingCommentRanges();
-      if (trailingCommentRanges == null || trailingCommentRanges.length === 0) {
-        return traversal.skip();
-      }
-
-      const trailingComment = trailingCommentRanges[0].getText();
-      // TODO: Support multiline comments
-      if (
-        !trailingComment.startsWith("//")
-      ) {
-        return traversal.skip();
-      }
-      const commentBody = trailingComment.slice("//".length).trim();
-      if (!commentBody.startsWith("=>")) return traversal.skip();
-
-      const expectedValue = commentBody.slice("=>".length).trim();
-
-      node.replaceWithText(
-        `${kAssertEquals}(${args[0].getText()}, ${expectedValue})`,
-      );
-      shouldInjectTestFileHeader = true;
-    });
-    if (shouldInjectTestFileHeader) {
-      sourceFile.insertText(
-        0,
-        kTestFileHeader,
-      );
-    }
-    const transformed = sourceFile.getFullText();
+    const transformed = transformSourceFile(sourceFile);
     return transformed;
   } finally {
     project.removeSourceFile(sourceFile);
   }
+}
+
+function transformSourceFile(sourceFile: SourceFile): string {
+  let shouldInjectTestFileHeader = false;
+  sourceFile.forEachDescendant((node, traversal) => {
+    if (node.getKind() !== ts.SyntaxKind.CallExpression) {
+      return;
+    }
+
+    assert(node.isKind(ts.SyntaxKind.CallExpression));
+    const maybeConsoleMethod = tryToGetConsoleMethod(node);
+    if (!maybeConsoleMethod) return traversal.skip();
+
+    const assertionExpr =
+      tryToTransformConsoleCallExpressionToAssertionExpression(
+        node,
+        maybeConsoleMethod,
+      );
+    if (assertionExpr == null) return traversal.skip();
+
+    node.replaceWithText(assertionExpr);
+    shouldInjectTestFileHeader = true;
+  });
+  if (shouldInjectTestFileHeader) {
+    sourceFile.insertText(
+      0,
+      kTestFileHeader,
+    );
+  }
+
+  const transformed = sourceFile.getFullText();
+  return transformed;
+}
+
+function tryToTransformConsoleCallExpressionToAssertionExpression(
+  callExpr: CallExpression,
+  method: ConsoleMethod,
+): string | null {
+  const args = callExpr.getArguments();
+  if (args.length !== 1) return null;
+
+  if (method === "assert") {
+    return `${kAssert}(${args[0].getText()})`;
+  } else {
+    const trailingCommentRanges = callExpr.getParent()
+      ?.getTrailingCommentRanges();
+    const hasNoTrailingComments = trailingCommentRanges == null ||
+      trailingCommentRanges.length === 0;
+    if (hasNoTrailingComments) {
+      return null;
+    }
+
+    const trailingComment = trailingCommentRanges[0].getText();
+    // TODO: Support multiline comments
+    if (
+      !trailingComment.startsWith("//")
+    ) {
+      return null;
+    }
+    const commentBody = trailingComment.slice("//".length).trim();
+    if (!commentBody.startsWith("=>")) return null;
+
+    const expectedValue = commentBody.slice("=>".length).trim();
+
+    return `${kAssertEquals}(${args[0].getText()}, ${expectedValue})`;
+  }
+}
+
+function tryToGetConsoleMethod(node: CallExpression): ConsoleMethod | null {
+  const expr = node.getExpressionIfKind(ts.SyntaxKind.PropertyAccessExpression);
+  if (expr == null) return null;
+
+  const ident = expr.getExpressionIfKind(ts.SyntaxKind.Identifier);
+  if (ident == null) return null;
+  if (ident.getText() !== kConsole) return null;
+
+  const methodName = expr.getNameNode().getText();
+  if (!isConsoleMethod(methodName)) return null;
+  return methodName;
+}
+
+function isConsoleMethod(methodName: string): methodName is ConsoleMethod {
+  return kConsoleMethods.includes(methodName as ConsoleMethod);
 }

@@ -1,4 +1,4 @@
 [power-doctest] testdata/cli.md ...
   [power-doctest] testdata/cli.md#L3-6 ... OK
-  [power-doctest] testdata/cli.md#L8-11 ... OK
+  [power-doctest] testdata/cli.md#L8-12 ... OK
 [power-doctest] testdata/cli.md ... OK

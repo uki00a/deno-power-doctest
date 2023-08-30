@@ -1,7 +1,16 @@
-import { assertEquals, kStdAssertEqualsModURL } from "./deps.ts";
+import {
+  assertEquals,
+  kStdAssertEqualsModURL,
+  kStdAssertModURL,
+} from "./deps.ts";
 import { createProject, transform } from "./_transform.ts";
 
+const kAssert = "_power_doctest_assert";
 const kAssertEquals = "_power_doctest_assertEquals";
+const kTestFileHeader =
+  `import { assert as ${kAssert} } from "${kStdAssertModURL}";
+import { assertEquals as ${kAssertEquals} } from "${kStdAssertEqualsModURL}";`;
+
 Deno.test("transform", async (t) => {
   const project = createProject();
   for (
@@ -19,8 +28,7 @@ console.log([1, "baz"]); // => [1, "baz"]
 console.info({ name: "bar", id: 1 }); // => { id: 1, name: "bar" }
 
 console.log(456); // -> 456`,
-        expected:
-          `import { assertEquals as ${kAssertEquals} } from "${kStdAssertEqualsModURL}";
+        expected: `${kTestFileHeader}
 const n: number = 123;
 ${kAssertEquals}(n, 123); // => 123
 ${kAssertEquals}("foo", "foo"); // => "foo"
@@ -32,6 +40,14 @@ ${kAssertEquals}([1, "baz"], [1, "baz"]); // => [1, "baz"]
 ${kAssertEquals}({ name: "bar", id: 1 }, { id: 1, name: "bar" }); // => { id: 1, name: "bar" }
 
 console.log(456); // -> 456`,
+      },
+      {
+        description: "console.assert",
+        given: `console.assert(1 + 2 === 3);
+console.assert("foo" === "fo" + "o"); // => true`,
+        expected: `${kTestFileHeader}
+${kAssert}(1 + 2 === 3);
+${kAssert}("foo" === "fo" + "o"); // => true`,
       },
     ]
   ) {
