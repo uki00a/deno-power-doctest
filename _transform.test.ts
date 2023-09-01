@@ -49,6 +49,15 @@ console.assert("foo" === "fo" + "o"); // => true`,
 ${kAssert}(1 + 2 === 3);
 ${kAssert}("foo" === "fo" + "o"); // => true`,
       },
+      {
+        description:
+          "handle an assertion comment that appears on the next line",
+        given: `console.log("hello");
+// => "hello"`,
+        expected: `${kTestFileHeader}
+${kAssertEquals}("hello", "hello");
+// => "hello"`,
+      },
     ]
   ) {
     await t.step({

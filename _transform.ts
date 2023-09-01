@@ -97,28 +97,51 @@ function tryToTransformConsoleCallExpressionToAssertionExpression(
   if (method === "assert") {
     return `${kAssert}(${args[0].getText()})`;
   } else {
-    const trailingCommentRanges = callExpr.getParent()
-      ?.getTrailingCommentRanges();
-    const hasNoTrailingComments = trailingCommentRanges == null ||
-      trailingCommentRanges.length === 0;
-    if (hasNoTrailingComments) {
-      return null;
-    }
-
-    const trailingComment = trailingCommentRanges[0].getText();
-    // TODO: Support multiline comments
+    const assertionCommentExpr = tryToGetAssertionCommentExpression(callExpr);
     if (
-      !trailingComment.startsWith("//")
+      assertionCommentExpr == null
     ) {
       return null;
     }
-    const commentBody = trailingComment.slice("//".length).trim();
-    if (!commentBody.startsWith("=>")) return null;
-
-    const expectedValue = commentBody.slice("=>".length).trim();
-
-    return `${kAssertEquals}(${args[0].getText()}, ${expectedValue})`;
+    return `${kAssertEquals}(${args[0].getText()}, ${assertionCommentExpr})`;
   }
+}
+
+function tryToGetAssertionCommentExpression(
+  callExpr: CallExpression,
+): string | null {
+  const callExprStmt = callExpr.getParent();
+  assert(callExprStmt?.isKind(ts.SyntaxKind.ExpressionStatement));
+  const trailingCommentRanges = callExprStmt.getTrailingCommentRanges();
+  const hasNoTrailingComments = trailingCommentRanges == null ||
+    trailingCommentRanges.length === 0;
+  if (hasNoTrailingComments) {
+    const maybeSingleLineComment = callExprStmt.getNextSiblingIfKind(
+      ts.SyntaxKind.SingleLineCommentTrivia,
+    );
+    if (maybeSingleLineComment == null) {
+      return null;
+    }
+    return tryToParseAssertionComment(maybeSingleLineComment.getText());
+  }
+
+  const assertionComment = trailingCommentRanges[0].getText();
+  return tryToParseAssertionComment(assertionComment);
+}
+
+function tryToParseAssertionComment(assertionComment: string): string | null {
+  // TODO: Support multiline comments
+  if (
+    !assertionComment.startsWith("//")
+  ) {
+    return null;
+  }
+
+  const commentBody = assertionComment.slice("//".length).trim();
+  if (!commentBody.startsWith("=>")) return null;
+
+  const expectedValue = commentBody.slice("=>".length).trim();
+  return expectedValue;
 }
 
 function tryToGetConsoleMethod(node: CallExpression): ConsoleMethod | null {
