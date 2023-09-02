@@ -1,4 +1,3 @@
-import assert from "node:assert";
 import {
   bold,
   brightYellow,
@@ -6,37 +5,10 @@ import {
   gray,
   parseStackTrace,
   red,
-  remarkParse,
-  selectAll,
-  unified,
 } from "./deps.ts";
 import { createProject, transform } from "./_transform.ts";
-
-// TODO: Support tsx/jsx
-const languages = ["ts", "typescript", "js", "javascript"] as const;
-type SupportedLanguage = typeof languages[number];
-
-function toMimeType(language: SupportedLanguage): string {
-  switch (language) {
-    case "ts":
-    case "typescript":
-      return "application/typescript";
-    case "js":
-    case "javascript":
-      return "application/javascript";
-  }
-}
-
-function getExtname(language: SupportedLanguage): `.${"ts" | "js"}` {
-  switch (language) {
-    case "ts":
-    case "typescript":
-      return ".ts";
-    case "js":
-    case "javascript":
-      return ".js";
-  }
-}
+import { toExtname, toMimeType } from "./_code_block.ts";
+import { parse as parseMarkdown } from "./markdown.ts";
 
 export type TestContext = Deno.TestContext;
 
@@ -72,33 +44,22 @@ export async function test(
   const markdown = await Deno.readTextFile(path);
   const { reporter } = options ?? {};
   const project = createProject();
-  const tree = unified().use(remarkParse).parse(markdown);
-  const codeBlocks = languages.flatMap((language) =>
-    selectAll(`code[lang="${language}"]`, tree)
-  ).sort((a, b) =>
-    (a.position?.start.line ?? 0) - (b.position?.start.line ?? 0)
-  );
+  const codeBlocks = parseMarkdown(markdown);
 
   const testSuiteName = `${kTestNamePrefix}${path}`;
   await reporter?.startTestSuite(testSuiteName);
   let status: TestResult["status"] = "success";
   for (const codeBlock of codeBlocks) {
-    // @ts-expect-error TODO: fix this type error.
-    const language: SupportedLanguage = codeBlock.lang;
-    const mimeType = toMimeType(language);
-
-    // @ts-expect-error TODO: fix this type error.
-    const code: string = codeBlock.value;
-    const filename = `${crypto.randomUUID()}${getExtname(language)}`;
+    const code = codeBlock.code;
+    const filename = `${crypto.randomUUID()}${toExtname(codeBlock.mediaType)}`;
     const transformedCode = transform({ code, filename, project });
+    const mimeType = toMimeType(codeBlock.mediaType);
     const dataURL = `data:${mimeType};base64,${
       encodeToBase64(transformedCode)
     }`;
 
-    const position = codeBlock.position;
-    assert(position, "`position` should exist");
-    const pathWithLocation =
-      `${path}#L${position.start.line}-${position.end.line}`;
+    const { range } = codeBlock;
+    const pathWithLocation = `${path}#L${range.start.line}-${range.end.line}`;
     const testCaseName = `${kTestNamePrefix}${pathWithLocation}`;
     const pass = await ctx.step(testCaseName, async () => {
       await reporter?.startTestCase(testCaseName);
