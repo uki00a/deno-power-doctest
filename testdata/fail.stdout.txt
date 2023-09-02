@@ -1,0 +1,3 @@
+[power-doctest] testdata/fail.md ...
+  [power-doctest] testdata/fail.md#L1-4 ... FAILED
+[power-doctest] testdata/fail.md ... FAILED
