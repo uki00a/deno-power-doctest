@@ -30,7 +30,7 @@ export function parse(content: string): Array<CodeBlock> {
     assert(position, "`position` should exist");
     return {
       // @ts-expect-error TODO: fix this type error.
-      code: codeBlock.value,
+      code: x.value,
       // @ts-expect-error TODO: fix this type error.
       mediaType: toMimeType(x.lang),
       range: {
