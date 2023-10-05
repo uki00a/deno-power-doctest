@@ -1,14 +1,8 @@
-import type { CodeBlock } from "./_code_block.ts";
+import { dirname, join, resolve } from "node:path";
+import type { CodeBlock, MimeType } from "./_code_block.ts";
 import { toExtname, toMimeType } from "./_code_block.ts";
 import { createProject, transform } from "./_transform.ts";
-import {
-  bold,
-  brightYellow,
-  encodeToBase64,
-  gray,
-  parseStackTrace,
-  red,
-} from "./deps.ts";
+import { bold, brightYellow, gray, parseStackTrace, red } from "./deps.ts";
 
 export type TestStatus = "success" | "failed";
 
@@ -24,8 +18,9 @@ export interface RunCodeBlocksOptions {
 interface TestCase {
   path: string;
   name: string;
-  mimeType: string;
+  mimeType: MimeType;
   code: string;
+  range: CodeBlock["range"];
 }
 
 export interface Runner {
@@ -38,8 +33,16 @@ export type TestCaseResult =
 
 class DynamicImportRunner implements Runner {
   async runTestCase(testCase: TestCase): Promise<TestCaseResult> {
+    const filename = `.doctest.${
+      testCase.mimeType === "application/typescript" ? "ts" : "js"
+    }`;
+    const path = resolve(join(dirname(testCase.path), filename));
+    await Deno.writeTextFile(path, testCase.code);
     try {
-      await runWithDynamicImport(testCase.code, testCase.mimeType);
+      const { range: { start: { line: start }, end: { line: end } } } =
+        testCase;
+      const url = new URL(`file://${path}?${start}-${end}`).href;
+      await import(url);
       return { status: "success" };
     } catch (error) {
       embedSourceCodeInfoIntoError(error, {
@@ -72,25 +75,18 @@ export async function runCodeBlocks(
     const { range } = codeBlock;
     const pathWithLocation = `${path}#L${range.start.line}-${range.end.line}`;
     const testCaseName = `${kTestNamePrefix}${pathWithLocation}`;
-    const result = await runner?.runTestCase({
+    const result = await runner.runTestCase({
       path: path ?? filename,
       mimeType,
       name: testCaseName,
       code: transformedCode,
+      range,
     });
     if (result.status === "failed") {
       status = "failed";
     }
   }
   return { status };
-}
-
-export async function runWithDynamicImport(
-  code: string,
-  mimeType: string,
-) {
-  const dataURL = `data:${mimeType};base64,${encodeToBase64(code)}`;
-  await import(dataURL);
 }
 
 const kInternalErrorEmbeddedSourceCodeInfo = Symbol(

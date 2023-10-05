@@ -21,7 +21,8 @@ Deno.test({
     await test(t, "README.md");
   },
   permissions: {
-    read: ["README.md"],
+    read: ["."],
+    write: [".doctest.ts"],
   },
 });
 ```

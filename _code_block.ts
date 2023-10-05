@@ -15,7 +15,11 @@ interface Position {
   column: number;
 }
 
-export function toMimeType(type: CodeBlock["mediaType"]): string {
+export type MimeType =
+  | "application/typescript"
+  | "application/javascript";
+
+export function toMimeType(type: CodeBlock["mediaType"]): MimeType {
   switch (type) {
     case "typescript":
       return "application/typescript";

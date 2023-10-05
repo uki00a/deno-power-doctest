@@ -36,11 +36,6 @@ export { assertEquals } from "https://deno.land/std@0.200.0/assert/assert_equals
 export { AssertionError } from "https://deno.land/std@0.200.0/assert/assertion_error.ts";
 
 export {
-  decode as decodeFromBase64,
-  encode as encodeToBase64,
-} from "https://deno.land/std@0.200.0/encoding/base64.ts";
-
-export {
   bold,
   brightYellow,
   gray,
