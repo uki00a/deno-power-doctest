@@ -12,7 +12,8 @@ Deno.test({
       args: [
         "run",
         "--no-prompt",
-        "--allow-read=testdata/cli.md",
+        "--allow-read=.",
+        "--allow-write=.",
         "cli.ts",
         "testdata/cli.md",
       ],
@@ -41,7 +42,8 @@ Deno.test({
       args: [
         "run",
         "--no-prompt",
-        "--allow-read=testdata/fail.md",
+        "--allow-read=.",
+        "--allow-write=.",
         "cli.ts",
         "testdata/fail.md",
       ],
