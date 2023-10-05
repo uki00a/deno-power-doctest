@@ -33,4 +33,4 @@ jobs:
           deno task test
       - name: Test README.md
         run:
-          deno run --allow-read=README.md --no-prompt cli.ts README.md
+          deno task test:README
