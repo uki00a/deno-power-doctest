@@ -7,6 +7,6 @@ Deno.test({
   },
   permissions: {
     read: ["."],
-    write: ["."]
+    write: ["."],
   },
 });
