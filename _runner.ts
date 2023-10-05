@@ -136,8 +136,9 @@ export function tryToGetStyledSourceCode(error: Error): string | null {
   for (let i = top; i < bottom; i++) {
     const isTargetLine = i === middle;
     if (isTargetLine) {
-      lines[i] = `  ${bold(red(lines[i]))}\n
-  (" ").repeat(columnNumber - 1)}${red("^")}`;
+      lines[i] = `  ${bold(red(lines[i]))}\n${(" ").repeat(columnNumber - 1)}${
+        red("^")
+      }`;
     } else {
       lines[i] = `  ${gray(lines[i])}`;
     }
