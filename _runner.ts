@@ -64,19 +64,20 @@ export async function runCodeBlocks(
   options?: RunCodeBlocksOptions,
 ): Promise<RunResult> {
   const project = createProject();
-  const { path } = options ?? {};
   const runner = options?.runner ?? new DynamicImportRunner();
   let status: TestStatus = "success";
   for (const codeBlock of codeBlocks) {
     const code = codeBlock.code;
-    const filename = `${crypto.randomUUID()}${toExtname(codeBlock.mediaType)}`;
+    const extname = toExtname(codeBlock.mediaType);
+    const filename = options?.path ?? `.doctest${extname}`;
     const transformedCode = transform({ code, filename, project });
     const mimeType = toMimeType(codeBlock.mediaType);
     const { range } = codeBlock;
+    const path = options?.path ?? join(Deno.cwd(), filename);
     const pathWithLocation = `${path}#L${range.start.line}-${range.end.line}`;
     const testCaseName = `${kTestNamePrefix}${pathWithLocation}`;
     const result = await runner.runTestCase({
-      path: path ?? filename,
+      path,
       mimeType,
       name: testCaseName,
       code: transformedCode,
@@ -122,25 +123,26 @@ export function tryToGetStyledSourceCode(error: Error): string | null {
       URL.canParse(x.fileName) && x.fileName.startsWith("data:")
     );
 
-  if (frames.length === 1) {
-    const [dataURLFrame] = frames;
-    const { columnNumber, lineNumber } = dataURLFrame;
-    const lines = maybeInfo.code.split("\n");
-    const middle = lineNumber - 1;
-    const top = Math.max(1, middle - 2);
-    const bottom = Math.min(middle + 3, lines.length);
-    for (let i = top; i < bottom; i++) {
-      const isTargetLine = i === middle;
-      if (isTargetLine) {
-        lines[i] = `  ${bold(red(lines[i]))}\n
-  ${(" ").repeat(columnNumber - 1)}${red("^")}`;
-      } else {
-        lines[i] = `  ${gray(lines[i])}`;
-      }
-    }
-    const code = lines.slice(top, bottom).join("\n");
-    const bar = red("⎯").repeat(40);
-    return `${bar}\n${brightYellow(bold(maybeInfo.path))}:\n${code}\n${bar}`;
+  if (frames.length !== 1) {
+    return null;
   }
-  return null;
+
+  const [dataURLFrame] = frames;
+  const { columnNumber, lineNumber } = dataURLFrame;
+  const lines = maybeInfo.code.split("\n");
+  const middle = lineNumber - 1;
+  const top = Math.max(1, middle - 2);
+  const bottom = Math.min(middle + 3, lines.length);
+  for (let i = top; i < bottom; i++) {
+    const isTargetLine = i === middle;
+    if (isTargetLine) {
+      lines[i] = `  ${bold(red(lines[i]))}\n
+  (" ").repeat(columnNumber - 1)}${red("^")}`;
+    } else {
+      lines[i] = `  ${gray(lines[i])}`;
+    }
+  }
+  const code = lines.slice(top, bottom).join("\n");
+  const bar = red("⎯").repeat(40);
+  return `${bar}\n${brightYellow(bold(maybeInfo.path))}:\n${code}\n${bar}`;
 }
