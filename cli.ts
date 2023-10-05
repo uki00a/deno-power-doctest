@@ -1,53 +1,35 @@
-import type { TestContext, TestReporter } from "./mod.ts";
-import { test, tryToGetStyledSourceCode } from "./mod.ts";
+import { parse as parseMarkdown } from "./markdown.ts";
+import type { Runner, TestStatus } from "./_runner.ts";
+import {
+  createDefaultRunner,
+  kTestNamePrefix,
+  runCodeBlocks,
+  tryToGetStyledSourceCode,
+} from "./_runner.ts";
 import { writeAll } from "./cli.deps.ts";
 import { bold, green, red } from "./deps.ts";
 
-function createTestContextForCLI(
-  name: string,
-  origin: string,
-): TestContext {
-  async function step(
-    descriptionOrDefinitionOrFn:
-      | string
-      | Deno.TestDefinition
-      | Deno.TestDefinition["fn"],
-    maybeFn?: Deno.TestDefinition["fn"],
-  ) {
-    const definition: Deno.TestStepDefinition =
-      typeof descriptionOrDefinitionOrFn === "string"
-        ? { name: descriptionOrDefinitionOrFn, fn: maybeFn ?? (() => {}) }
-        : (typeof descriptionOrDefinitionOrFn === "function")
-        ? {
-          fn: descriptionOrDefinitionOrFn,
-          name: descriptionOrDefinitionOrFn.name,
-        }
-        : descriptionOrDefinitionOrFn;
-    if (definition.ignore) {
-      return true;
-    }
+interface TestReporter {
+  startTestSuite(name: string): Promise<void>;
+  finishTestSuite(name: string, status: TestStatus): Promise<void>;
+  startTestCase(name: string): Promise<void>;
+  finishTestCase(name: string, status: TestStatus): Promise<void>;
+  reportError(error: Error): Promise<void>;
+}
 
-    try {
-      await definition.fn(createTestContextForCLI(definition.name, origin));
-      return true;
-    } catch (error) {
-      console.error(error);
-      if (error != null) {
-        const code = tryToGetStyledSourceCode(error);
-        if (code != null) {
-          console.error(code);
-        }
+function createCLIRunner(reporter: TestReporter): Runner {
+  const runner = createDefaultRunner();
+  return {
+    async runTestCase(testCase) {
+      await reporter.startTestCase(testCase.name);
+      const result = await runner.runTestCase(testCase);
+      if (result.status === "failed") {
+        await reporter.reportError(result.error);
       }
-      return false;
-    }
-  }
-
-  const ctx: TestContext = {
-    name,
-    origin,
-    step,
+      await reporter.finishTestCase(testCase.name, result.status);
+      return result;
+    },
   };
-  return ctx;
 }
 
 function createCLIReporter(stdout: Deno.Writer): TestReporter {
@@ -70,18 +52,31 @@ function createCLIReporter(stdout: Deno.Writer): TestReporter {
         encoder.encode(`${bold(name)} ... ${statusText}\n`),
       );
     },
+    reportError(error) {
+      console.error(error);
+      const code = tryToGetStyledSourceCode(error);
+      if (code != null) {
+        console.error(code);
+      }
+      return Promise.resolve();
+    },
   };
 }
 
 async function main(args: Array<string>) {
+  const reporter = createCLIReporter(Deno.stdout);
+  const runner = createCLIRunner(reporter);
   let failed = false;
   for (const input of args) {
-    const ctx = createTestContextForCLI(input, input);
-    const reporter = createCLIReporter(Deno.stdout);
-    const { status } = await test(ctx, input, { reporter });
-    if (status === "failed") {
+    const testSuiteName = `${kTestNamePrefix}${input}`;
+    await reporter.startTestSuite(testSuiteName);
+    const content = await Deno.readTextFile(input);
+    const codeBlocks = parseMarkdown(content);
+    const result = await runCodeBlocks(codeBlocks, { runner, path: input });
+    if (result.status === "failed") {
       failed = true;
     }
+    await reporter.finishTestSuite(testSuiteName, result.status);
   }
 
   if (failed) {
