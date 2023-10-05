@@ -8,6 +8,6 @@ export async function test(
 ): Promise<RunResult> {
   const markdown = await Deno.readTextFile(path);
   const codeBlocks = parseMarkdown(markdown);
-  const result = await testCodeBlocks(ctx, codeBlocks);
+  const result = await testCodeBlocks(ctx, codeBlocks, { path });
   return result;
 }

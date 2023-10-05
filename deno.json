@@ -2,8 +2,8 @@
   "lock": false,
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check cli.ts",
-    "test": "deno test --doc --allow-read=. --allow-run=deno",
-    "test:README": "deno run --allow-read=. --no-prompt cli.ts README.md"
+    "test": "deno test --doc --allow-read=. --allow-write=. --allow-run=deno",
+    "test:README": "deno run --allow-read=. --allow-write=.doctest.ts --no-prompt cli.ts README.md"
   },
   "imports": {
     "https://deno.land/x/deno_power_doctest@$MODULE_VERSION/mod.ts": "./mod.ts"
