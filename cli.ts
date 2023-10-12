@@ -2,11 +2,9 @@ import type { Runner, TestStatus } from "./_runner.ts";
 import {
   createDefaultRunner,
   kTestNamePrefix,
-  runCodeBlocks,
   tryToGetStyledSourceCode,
 } from "./_runner.ts";
 import { run } from "./mod.ts";
-import { chooseParserFromPath } from "./_parser.ts";
 import { writeAll } from "./cli.deps.ts";
 import { bold, green, red } from "./deps.ts";
 
