@@ -1,8 +1,9 @@
 import { dirname, join, resolve } from "node:path";
 import type { CodeBlock, MimeType } from "./_code_block.ts";
 import { toExtname, toMimeType } from "./_code_block.ts";
-import { createProject, transform } from "./_transform.ts";
+import { transform } from "./_transform.ts";
 import { bold, brightYellow, gray, parseStackTrace, red } from "./deps.ts";
+import { createProject } from "./internal/ts-morph/mod.ts";
 
 export type TestStatus = "success" | "failed";
 

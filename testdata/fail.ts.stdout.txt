@@ -1,0 +1,3 @@
+[power-doctest] testdata/fail.ts ...
+  [power-doctest] testdata/fail.ts#L2-6 ... FAILED
+[power-doctest] testdata/fail.ts ... FAILED

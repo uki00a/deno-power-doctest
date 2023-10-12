@@ -1,3 +1,4 @@
 .env*
 .vscode
 .doctest.ts
+.doctest.js
