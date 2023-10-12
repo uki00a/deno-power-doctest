@@ -1,0 +1,7 @@
+[power-doctest] testdata/sample.ts ...
+  [power-doctest] testdata/sample.ts#L2-6 ... 9
+OK
+  [power-doctest] testdata/sample.ts#L21-24 ... OK
+  [power-doctest] testdata/sample.ts#L26-29 ... OK
+  [power-doctest] testdata/sample.ts#L37-40 ... OK
+[power-doctest] testdata/sample.ts ... OK

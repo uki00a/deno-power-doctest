@@ -6,6 +6,7 @@ import {
   Project,
   ts,
 } from "./deps.ts";
+import { withSourceFile } from "./internal/ts-morph/mod.ts";
 
 const kConsole = "console";
 const kConsoleMethods = [
@@ -27,12 +28,6 @@ const kTestFileHeader =
   `import { assert as ${kAssert} } from "${kStdAssertModURL}";
 import { assertEquals as ${kAssertEquals} } from "${kStdAssertEqualsModURL}";\n`;
 
-export function createProject(): Project {
-  return new Project({
-    useInMemoryFileSystem: true,
-  });
-}
-
 interface TransformOptions {
   code: string;
   filename: string;
@@ -46,13 +41,7 @@ export function transform(
     project,
   }: TransformOptions,
 ): string {
-  const sourceFile = project.createSourceFile(filename, code);
-  try {
-    const transformed = transformSourceFile(sourceFile);
-    return transformed;
-  } finally {
-    project.removeSourceFile(sourceFile);
-  }
+  return withSourceFile(transformSourceFile, project, filename, code);
 }
 
 function transformSourceFile(sourceFile: SourceFile): string {

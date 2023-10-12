@@ -21,7 +21,7 @@ export { parse as parseStackTrace } from "https://esm.sh/stack-trace@1.0.0-pre2?
 /**
  * {@link https://github.com/dsherret/ts-morph}
  */
-export { Project, ts } from "https://deno.land/x/ts_morph@19.0.0/mod.ts";
+export { Node, Project, ts } from "https://deno.land/x/ts_morph@19.0.0/mod.ts";
 export type {
   CallExpression,
   SourceFile,
