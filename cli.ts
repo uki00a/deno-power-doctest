@@ -2,10 +2,9 @@ import type { Runner, TestStatus } from "./_runner.ts";
 import {
   createDefaultRunner,
   kTestNamePrefix,
-  runCodeBlocks,
   tryToGetStyledSourceCode,
 } from "./_runner.ts";
-import { chooseParserFromPath } from "./_parser.ts";
+import { run } from "./mod.ts";
 import { writeAll } from "./cli.deps.ts";
 import { bold, green, red } from "./deps.ts";
 
@@ -70,10 +69,7 @@ async function main(args: Array<string>) {
   for (const input of args) {
     const testSuiteName = `${kTestNamePrefix}${input}`;
     await reporter.startTestSuite(testSuiteName);
-    const content = await Deno.readTextFile(input);
-    const parser = chooseParserFromPath(input);
-    const codeBlocks = parser(content);
-    const result = await runCodeBlocks(codeBlocks, { runner, path: input });
+    const result = await run(input, { runner });
     if (result.status === "failed") {
       failed = true;
     }
