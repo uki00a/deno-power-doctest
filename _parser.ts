@@ -16,7 +16,7 @@ export function chooseParserFromPath(path: string): Parser {
       return parseTypeScript;
     default:
       throw new Error(
-        "`${extname(path)}` format is currently not supported yet.",
+        `"${extname(path)}" format is currently not supported yet.`,
       );
   }
 }

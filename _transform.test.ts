@@ -3,7 +3,8 @@ import {
   kStdAssertEqualsModURL,
   kStdAssertModURL,
 } from "./deps.ts";
-import { createProject, transform } from "./_transform.ts";
+import { transform } from "./_transform.ts";
+import { createProject } from "./internal/ts-morph/mod.ts";
 
 const kAssert = "_power_doctest_assert";
 const kAssertEquals = "_power_doctest_assertEquals";
