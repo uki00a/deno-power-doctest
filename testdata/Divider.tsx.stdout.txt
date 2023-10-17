@@ -1,0 +1,3 @@
+[power-doctest] testdata/Divider.tsx ...
+  [power-doctest] testdata/Divider.tsx#L6-11 ... OK
+[power-doctest] testdata/Divider.tsx ... OK
