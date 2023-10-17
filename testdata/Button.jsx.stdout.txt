@@ -1,0 +1,4 @@
+[power-doctest] testdata/Button.jsx ...
+  [power-doctest] testdata/Button.jsx#L2-11 ... true
+OK
+[power-doctest] testdata/Button.jsx ... OK

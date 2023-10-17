@@ -1,7 +1,6 @@
 export interface CodeBlock {
   code: string;
-  // TODO: Support `jsx` & `tsx`
-  mediaType: "typescript" | "javascript";
+  mediaType: "typescript" | "javascript" | "tsx" | "jsx";
   range: CodeBlockRange;
 }
 
@@ -15,24 +14,17 @@ interface Position {
   column: number;
 }
 
-export type MimeType =
-  | "application/typescript"
-  | "application/javascript";
-
-export function toMimeType(type: CodeBlock["mediaType"]): MimeType {
-  switch (type) {
-    case "typescript":
-      return "application/typescript";
-    case "javascript":
-      return "application/javascript";
-  }
-}
-
-export function toExtname(language: CodeBlock["mediaType"]): `.${"ts" | "js"}` {
+export function toExtname(
+  language: CodeBlock["mediaType"],
+): `.${"ts" | "js" | "tsx" | "jsx"}` {
   switch (language) {
     case "typescript":
       return ".ts";
     case "javascript":
       return ".js";
+    case "tsx":
+      return ".tsx";
+    case "jsx":
+      return ".jsx";
   }
 }

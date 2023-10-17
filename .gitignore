@@ -2,3 +2,5 @@
 .vscode
 .doctest.ts
 .doctest.js
+.doctest.tsx
+.doctest.jsx

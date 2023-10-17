@@ -13,6 +13,8 @@ export function chooseParserFromPath(path: string): Parser {
       return parseMarkdown;
     case ".ts":
     case ".js":
+    case ".tsx":
+    case ".jsx":
       return parseTypeScript;
     default:
       throw new Error(

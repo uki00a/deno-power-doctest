@@ -4,10 +4,17 @@ import { remarkParse, selectAll, unified } from "./markdown.deps.ts";
 import type { CodeBlock } from "./_code_block.ts";
 
 // TODO: Support tsx/jsx
-const languages = ["ts", "typescript", "js", "javascript"] as const;
+const languages = [
+  "ts",
+  "typescript",
+  "js",
+  "javascript",
+  "tsx",
+  "jsx",
+] as const;
 type SupportedLanguage = typeof languages[number];
 
-function toMimeType(language: SupportedLanguage): CodeBlock["mediaType"] {
+function toMediaType(language: SupportedLanguage): CodeBlock["mediaType"] {
   switch (language) {
     case "ts":
     case "typescript":
@@ -15,6 +22,10 @@ function toMimeType(language: SupportedLanguage): CodeBlock["mediaType"] {
     case "js":
     case "javascript":
       return "javascript";
+    case "tsx":
+      return "tsx";
+    case "jsx":
+      return "jsx";
   }
 }
 
@@ -32,7 +43,7 @@ export function parse(content: string): Array<CodeBlock> {
       // @ts-expect-error TODO: fix this type error.
       code: x.value,
       // @ts-expect-error TODO: fix this type error.
-      mediaType: toMimeType(x.lang),
+      mediaType: toMediaType(x.lang),
       range: {
         start: { line: position.start.line, column: position.start.column },
         end: { line: position.end.line, column: position.end.column },
