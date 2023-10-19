@@ -1,7 +1,8 @@
 [power-doctest] testdata/sample.ts ...
-  [power-doctest] testdata/sample.ts#L2-6 ... 9
+  [power-doctest] testdata/sample.ts#L2-6 ... OK
+  [power-doctest] testdata/sample.ts#L11-15 ... 9
 OK
-  [power-doctest] testdata/sample.ts#L21-24 ... OK
-  [power-doctest] testdata/sample.ts#L26-29 ... OK
-  [power-doctest] testdata/sample.ts#L37-40 ... OK
+  [power-doctest] testdata/sample.ts#L30-33 ... OK
+  [power-doctest] testdata/sample.ts#L35-38 ... OK
+  [power-doctest] testdata/sample.ts#L46-49 ... OK
 [power-doctest] testdata/sample.ts ... OK
