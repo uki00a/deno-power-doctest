@@ -24,6 +24,10 @@ export { parse as parseStackTrace } from "https://esm.sh/stack-trace@1.0.0-pre2?
 export { Node, Project, ts } from "https://deno.land/x/ts_morph@19.0.0/mod.ts";
 export type {
   CallExpression,
+  JSDocLink,
+  JSDocLinkCode,
+  JSDocLinkPlain,
+  JSDocText,
   SourceFile,
 } from "https://deno.land/x/ts_morph@19.0.0/mod.ts";
 

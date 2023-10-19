@@ -1,5 +1,14 @@
 /**
  * ```ts
+ * import { add, sub } from "./sample.ts";
+ *
+ * console.log(add(sub(5, 4), 2)); // => 3
+ * ```
+ * @module
+ */
+
+/**
+ * ```ts
  * import { add } from "./sample.ts";
  * console.log(add(1, 2)); // => 3
  * console.log(add(4, 5)); // => 9
